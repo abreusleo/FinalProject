@@ -11,10 +11,13 @@ let width = 750 - (margin * 2);
 let height = 400 - (margin * 2);
 
 let zoom:any = d3.zoom()
-  .on('zoom', handleZoom);
+  .on('zoom', handleZoom)
+  .scaleExtent([1, 5])
+  .translateExtent([[0, 0], [width, height]]);
 
 function handleZoom(e:any) {
-  d3.select('svg').attr('transform', e.transform);
+  d3.select('svg g').attr('transform', e.transform);
+  //d3.selectAll('svg g g circle').attr("r", 1)
 }
 
 @Component({
@@ -40,14 +43,19 @@ export class AppComponent implements OnInit{
     .append("svg")
     .attr("width", width + (margin * 2))
     .attr("height", height + (margin * 2))
+    .style("border", '1px solid black')
+    .style('display', 'block')
+    .style('margin', 'auto')
     .append("g")
+    .attr("transform", "translate(" + margin + "," + margin + ")")
     .call(zoom);
 
     svg
     .append("image")
     .attr('xlink:href','https://i.imgur.com/h0ng2pY.png')
     .attr('height', 300)
-    .attr('width', 650);
+    .attr('width', 650)
+    .attr('preserveAspectRatio', 'none');
   }
   private drawPlot(): void {
     var tooltip = d3.select("figure#scatter")
@@ -80,16 +88,11 @@ export class AppComponent implements OnInit{
     const x = d3.scaleLinear()
     .domain([0, 100])
     .range([ 0, width ]);
-    svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).tickFormat(d3.format("d")));
 
     // Add Y axis
     const y = d3.scaleLinear()
     .domain([0, 100])
     .range([ height, 0]);
-    svg.append("g")
-    .call(d3.axisLeft(y));
 
     // Add dots
     const dots = svg.append('g');
@@ -102,10 +105,19 @@ export class AppComponent implements OnInit{
     .attr("r", 5)
     .style("opacity",.5)
     .style("fill", function(d : any){
-      if(d.team.id == match.home_team.id){
-        return "#ff0000"
+      if(d.code == "A2C" || d.code == "A3C" || d.code == "LLC" || d.code == "ENT"){
+        return "#00ff00"
       }
-      return "#0000ff";
+      else if(d.code == "A2E" || d.code == "A3E" || d.code == "LLE" || d.code == "ENE"){
+        return "#ff0000";
+      }
+      else if(d.code == "ASS"){
+        return "#ffff00"
+      }
+      else if(d.code == "BOR" || d.code == "BRE" || d.code == "RDE" || d.code == "RED" || d.code == "REO" || d.code == "ERR"){
+        return "#81007f"
+      }
+      return "#ffffff";
     })
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
