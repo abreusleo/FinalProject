@@ -4,15 +4,13 @@
   <!-- Form Name -->
   <h1 class="display-1" style="text-align: center;">Consulta da API</h1>
   
-
-  
   <!-- Select input-->
   <div class="form-group">
     <label class="col-md-4 control-label" for="match">Match</label>
     <div class="col-md-4">
-    <select [(ngModel)]="selectedValue" formControlName="match" class="form-select" aria-label="Default select example" required="">
-        <option *ngFor="let m of matches.data" [value]="m.match_id" id="match" >{{m.name}}</option>
-     </select>
+    <select [(ngModel)]="selectedValue" formControlName="match" (change)="matchSelected()" class="form-select" aria-label="Default select example" required="">
+        <option *ngFor="let m of matches.data" [value]="m.match_id" id="match">{{m.name}}</option>
+    </select>
     </div>
   </div>
 
@@ -21,8 +19,18 @@
     <label class="col-md-4 control-label" for="eventType">Event type</label>
     <div class="col-md-4">
     <select [(ngModel)]="selectedValue2" formControlName="eventType" class="form-select" aria-label="Default select example" required="">
-        <option *ngFor="let t of eventTypes" [value]="t.code" id="eventType" >{{t.name}}</option>
+        <option *ngFor="let e of eventTypes" [value]="e.code" id="eventType" >{{e.name}}</option>
      </select>
+    </div>
+  </div>
+
+   <!-- Select input-->
+   <div class="form-group">
+    <label class="col-md-4 control-label" for="player">Players</label>
+    <div class="col-md-4">
+    <select [(ngModel)]="selectedValue3" formControlName="player" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "selectSize">
+        <option *ngFor="let p of playersData" [value]="p.id" id="player" >{{p.name}} ({{p.team}})</option>
+    </select>
     </div>
   </div>
   
@@ -30,7 +38,7 @@
   <div class="form-group">
     <label class="col-md-4 control-label" for=""></label>
     <div class="col-md-4">
-      <button id="" name="" class="btn btn-primary" type="submit" [disabled]="!apiForm.valid" ng-click="test = true">Enviar</button>
+      <button id="" name="" class="btn btn-primary" type="submit" [disabled]="!apiForm.valid">Enviar</button>
     </div>
   </div>
   </fieldset>

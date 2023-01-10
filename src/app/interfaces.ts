@@ -15,6 +15,21 @@ export interface ApiMatchesResponse{
     data: Array<ApiMatch>
 }
 
+export interface PlayersResponse{
+    home_team: any,
+    away_team: any,
+    home_players: Player[],
+    away_players: Player[]
+}
+
+export interface Player{
+    id: number,
+    name: string,
+    nickname: string,
+    number: number,
+    in_court: boolean,
+    team: string
+}
 
 export interface ApiMatch{
     league_id: number,

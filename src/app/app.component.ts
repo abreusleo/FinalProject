@@ -1,14 +1,24 @@
 
 import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormControl } from '@angular/forms';
-import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, ApiMatch } from './interfaces';
+import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, ApiMatch, PlayersResponse, Player } from './interfaces';
+import { ApiCaller } from "./api-caller";
 import * as d3 from "d3";
-
+//TODO clean players list
 let match: ApiMatch;
 let svg: any;
 let margin = 50;
 let width = 750 - (margin * 2);
 let height = 400 - (margin * 2);
+let AllPlayers = {
+  "id": -1,
+  "name": "Todos",
+  "nickname": "Todos",
+  "number": -1,
+  "in_court": true,
+  "team": ""
+}
+let caller = new ApiCaller();
 
 let zoom:any = d3.zoom()
   .on('zoom', handleZoom)
@@ -17,7 +27,6 @@ let zoom:any = d3.zoom()
 
 function handleZoom(e:any) {
   d3.select('svg g').attr('transform', e.transform);
-  //d3.selectAll('svg g g circle').attr("r", 1)
 }
 
 @Component({
@@ -26,16 +35,20 @@ function handleZoom(e:any) {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit{
+  selectSize = 1;
   title = 'Basquete';
-  eventTypes: EventType[] = [{"code" : "NONE", "name":"Todos"}];
+  eventTypes: EventType[] = [{"code" : "NONE", "name":"Todos"}, {"code" : "A2C, A2E, A3C, A3E", "name":"Arremessos"}];
+  playersData: Player[] = [AllPlayers];
   matches: ApiMatchesResponse = {"data": []};
   selectedValue: any;
   selectedValue2: any;
+  selectedValue3: any;
   graphArray: ApiEvent[] = [];
   conditionalboolProperty: boolean = false;
   apiForm = new FormGroup({
     match: new FormControl(''),
-    eventType: new FormControl('')
+    eventType: new FormControl(''),
+    player: new FormControl('')
   });
 
   private createSvg(): void {
@@ -52,7 +65,7 @@ export class AppComponent implements OnInit{
 
     svg
     .append("image")
-    .attr('xlink:href','https://i.imgur.com/h0ng2pY.png')
+    .attr('xlink:href','https://i.imgur.com/D0smQFm.png')
     .attr('height', 300)
     .attr('width', 650)
     .attr('preserveAspectRatio', 'none');
@@ -127,61 +140,56 @@ export class AppComponent implements OnInit{
   ngOnInit() {
     this.onLoad();
   }
+  
+ /*
+      this.playersData.push({
+        "id": element.id,
+        "name": element.name,
+        "nickname": element.nickname,
+        "number": element.number,
+        "in_court": element.in_court,
+        "team": players.home_team.name
+      });
+ */
+
+  async matchSelected(){
+    this.playersData = [AllPlayers];
+    const players : PlayersResponse = await caller.callForPlayersFromMatch(this.selectedValue).then(a => a.json());
+    let player : Player;
+    players.home_players.forEach(element => {
+      player = element;
+      player.team = players.home_team.name
+      this.playersData.push(player);
+    });
+    players.away_players.forEach(element => {
+      player = element;
+      player.team = players.away_team.name
+      this.playersData.push(player);
+   });
+   this.selectSize = this.playersData.length/4;
+  }
 
   async onLoad(){
-    const apiEvents : Array<EventType> = await this.callForEventTypes().then(a => a.json());
-    const apiMatches : ApiMatchesResponse = await this.callForMatches().then(a => a.json());
+    const apiEvents : Array<EventType> = await caller.callForEventTypes().then(a => a.json());
+    const apiMatches : ApiMatchesResponse = await caller.callForMatches().then(a => a.json());
     apiEvents.forEach(element => {
       this.eventTypes.push(element);
     });
     this.matches = apiMatches;
+    this.createSvg();
   }
 
   async onSubmit() {
     this.graphArray = [];
-    const apiData : ApiResponse = await this.callForMatchEvents(this.apiForm.value.match, this.apiForm.value.eventType).then(a => a.json());
+    const apiData : ApiResponse = await caller.callForMatchEvents(this.apiForm.value.match, this.apiForm.value.eventType, this.apiForm.value.player).then(a => a.json());
     match = this.matches.data.filter(a => String(a.match_id) == this.apiForm.value.match)[0];
 
     apiData.data.forEach(el => {
       this.graphArray.push(el)
     });
     this.conditionalboolProperty = true;
-    this.createSvg();
+    d3.selectAll("svg > g > g").remove();
     this.drawPlot();
-  }
-  
-  public async callForMatchEvents(match: any, eventType: any){
-    let link = ""
-    if(eventType == undefined || eventType == "NONE"){
-      link = `https://apibird.tecgraf.puc-rio.br/v1/events/1/${match}?has_position=true&page=1&limit=500`;
-    }
-    else{
-      link = `https://apibird.tecgraf.puc-rio.br/v1/events/1/${match}?event_types=${eventType}&has_position=true&page=1&limit=500`;
-    }
-    const response = await fetch(link,
-    {
-      method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
-    });
-    return response;
-  }
-
-  public async callForMatches(){
-    const response = await fetch(`https://apibird.tecgraf.puc-rio.br/v1/matches/1?season=2021`,
-    {
-      method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
-    });
-    return response;
-  }
-
-  public async callForEventTypes(){
-    const response = await fetch(`https://apibird.tecgraf.puc-rio.br/v1/events/types`,
-    {
-      method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
-    });
-    return response;
   }
 }
 export class Point{
