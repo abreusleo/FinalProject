@@ -8,8 +8,8 @@ import * as d3 from "d3";
 let match: ApiMatch;
 let svg: any;
 let margin = 50;
-let width = 750 - (margin * 2);
-let height = 400 - (margin * 2);
+let width = 750 ;
+let height = 458 ;
 let AllPlayers = {
   "id": -1,
   "name": "Todos",
@@ -18,6 +18,8 @@ let AllPlayers = {
   "in_court": true,
   "team": ""
 }
+let home_team = ""
+let away_team = ""
 let caller = new ApiCaller();
 
 let zoom:any = d3.zoom()
@@ -38,13 +40,16 @@ export class AppComponent implements OnInit{
   selectSize = 1;
   title = 'Basquete';
   eventTypes: EventType[] = [{"code" : "NONE", "name":"Todos"}, {"code" : "A2C, A2E, A3C, A3E", "name":"Arremessos"}];
-  playersData: Player[] = [AllPlayers];
   matches: ApiMatchesResponse = {"data": []};
+  playersData: Player[] = [AllPlayers];
+
   selectedValue: any;
   selectedValue2: any;
   selectedValue3: any;
+
   graphArray: ApiEvent[] = [];
   conditionalboolProperty: boolean = false;
+
   apiForm = new FormGroup({
     match: new FormControl(''),
     eventType: new FormControl(''),
@@ -66,8 +71,8 @@ export class AppComponent implements OnInit{
     svg
     .append("image")
     .attr('xlink:href','https://i.imgur.com/D0smQFm.png')
-    .attr('height', 300)
-    .attr('width', 650)
+    .attr('height', height)
+    .attr('width', width)
     .attr('preserveAspectRatio', 'none');
   }
   private drawPlot(): void {
@@ -85,7 +90,7 @@ export class AppComponent implements OnInit{
     }
   
     var mousemove = function(this: any, e : any, d:any) {
-      tooltip.html("Jogador: " + d.player.name + "<br/>Evento: " + d.code)
+      tooltip.html("Jogador: " + d.player.name + "<br/>Evento: " + d.code + "<br/>X:" + d.position.x + "<br/>Y:" + d.position.y)
         .style("left", (e.clientX+10) + "px")
         .style("top", (e.clientY-40) + "px");
     }
@@ -136,26 +141,17 @@ export class AppComponent implements OnInit{
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
   }
-
   ngOnInit() {
     this.onLoad();
   }
-  
- /*
-      this.playersData.push({
-        "id": element.id,
-        "name": element.name,
-        "nickname": element.nickname,
-        "number": element.number,
-        "in_court": element.in_court,
-        "team": players.home_team.name
-      });
- */
-
   async matchSelected(){
     this.playersData = [AllPlayers];
     const players : PlayersResponse = await caller.callForPlayersFromMatch(this.selectedValue).then(a => a.json());
     let player : Player;
+
+    home_team = players.home_team.name;
+    away_team = players.away_team.name;
+
     players.home_players.forEach(element => {
       player = element;
       player.team = players.home_team.name
@@ -168,7 +164,6 @@ export class AppComponent implements OnInit{
    });
    this.selectSize = this.playersData.length/4;
   }
-
   async onLoad(){
     const apiEvents : Array<EventType> = await caller.callForEventTypes().then(a => a.json());
     const apiMatches : ApiMatchesResponse = await caller.callForMatches().then(a => a.json());
@@ -178,15 +173,28 @@ export class AppComponent implements OnInit{
     this.matches = apiMatches;
     this.createSvg();
   }
-
   async onSubmit() {
     this.graphArray = [];
     const apiData : ApiResponse = await caller.callForMatchEvents(this.apiForm.value.match, this.apiForm.value.eventType, this.apiForm.value.player).then(a => a.json());
     match = this.matches.data.filter(a => String(a.match_id) == this.apiForm.value.match)[0];
 
-    apiData.data.forEach(el => {
+    apiData.data.forEach(el => {    
+      if(el.team.name == home_team){
+        if (el.position.x > 50){
+          console.log(el.position.x, 100 - el.position.x)
+          el.position.x = 100 - el.position.x;
+          el.position.y = 100 - el.position.y;
+        }
+      }
+      else if(el.team.name == away_team){
+        if (el.position.x < 50){
+          el.position.x = 100 - el.position.x;
+          el.position.y = 100 - el.position.y;
+        }
+      }
       this.graphArray.push(el)
     });
+
     this.conditionalboolProperty = true;
     d3.selectAll("svg > g > g").remove();
     this.drawPlot();
