@@ -22,6 +22,8 @@ let home_team = ""
 let away_team = ""
 let caller = new ApiCaller();
 
+let heatmap = Array.from(Array(100), () => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+
 let zoom:any = d3.zoom()
   .on('zoom', handleZoom)
   .scaleExtent([1, 5])
@@ -66,6 +68,7 @@ export class AppComponent implements OnInit{
     .style('margin', 'auto')
     .append("g")
     .attr("transform", "translate(" + margin + "," + margin + ")")
+    .attr("class", "ImgSvg")
     .call(zoom);
 
     svg
@@ -75,8 +78,10 @@ export class AppComponent implements OnInit{
     .attr('width', width)
     .attr('preserveAspectRatio', 'none');
   }
+
   private drawPlot(): void {
-    var tooltip = d3.select("figure#scatter")
+  // create a tooltip
+  var tooltip = d3.select("#scatter")
     .append("div")
     .style("opacity", 0)
     .attr("class", "tooltip")
@@ -84,62 +89,63 @@ export class AppComponent implements OnInit{
     .style("border", "solid")
     .style("border-width", "1px")
     .style("border-radius", "5px")
-    .style("padding", "10px")
-    var mouseover = function(d: any) {
-      tooltip.style("opacity", 1)
-    }
-  
-    var mousemove = function(this: any, e : any, d:any) {
-      tooltip.html("Jogador: " + d.player.name + "<br/>Evento: " + d.code + "<br/>X:" + d.position.x + "<br/>Y:" + d.position.y)
-        .style("left", (e.clientX+10) + "px")
-        .style("top", (e.clientY-40) + "px");
-    }
-  
-    // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
-    var mouseleave = function(d : any) {
-      tooltip
-        .transition()
-        .duration(200)
-        .style("opacity", 0)
-    }
-    // Add X axis
-    const x = d3.scaleLinear()
-    .domain([0, 100])
-    .range([ 0, width ]);
+    .style("padding", "5px");
 
-    // Add Y axis
-    const y = d3.scaleLinear()
-    .domain([0, 100])
-    .range([ height, 0]);
+  // Three function that change the tooltip when user hover / move / leave a cell
+  var mouseover = function(d : any) {
+    tooltip
+      .style("opacity", 1)
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+  }
+  var mousemove = function(this: any, e : any, d:any) {
+    tooltip
+      .html("Quantidade de arremessos: " + d.value)
+      .style("left", (e.clientX + 20) + "px")
+      .style("top", (e.clientY) + "px")
+  }
+  var mouseleave = function(d : any) {
+    tooltip
+      .style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "none")
+      .style("opacity", 0.8)
+  }
+    var myColor = d3.scaleLinear<string, number>()
+    .domain([1, 4])
+    .range(["grey", "red"])
+    var x = d3.scaleLinear()
+        .range([0, width])
+        .domain([0,heatmap[0].length]);
 
-    // Add dots
-    const dots = svg.append('g');
-    dots.selectAll("dot")
-    .data(this.graphArray)
-    .enter()
-    .append("circle")
-    .attr("cx", (d: any) => x(d.position.x))
-    .attr("cy",  (d: any) => y(d.position.y))
-    .attr("r", 5)
-    .style("opacity",.5)
-    .style("fill", function(d : any){
-      if(d.code == "A2C" || d.code == "A3C" || d.code == "LLC" || d.code == "ENT"){
-        return "#00ff00"
-      }
-      else if(d.code == "A2E" || d.code == "A3E" || d.code == "LLE" || d.code == "ENE"){
-        return "#ff0000";
-      }
-      else if(d.code == "ASS"){
-        return "#ffff00"
-      }
-      else if(d.code == "BOR" || d.code == "BRE" || d.code == "RDE" || d.code == "RED" || d.code == "REO" || d.code == "ERR"){
-        return "#81007f"
-      }
-      return "#ffffff";
-    })
-    .on("mouseover", mouseover)
-    .on("mousemove", mousemove)
-    .on("mouseleave", mouseleave)
+    var y = d3.scaleLinear()
+        .range([0, height])
+        .domain([0,heatmap.length]);
+
+
+    var svg = d3.select(".ImgSvg")
+        .attr("width", width + margin*2)
+        .attr("height", height + margin*2)
+        .append("g");
+
+    var row = svg.selectAll(".row")
+      .data(heatmap).enter().append("svg:g")
+      .attr("class", "row");
+
+    var col = row.selectAll(".cell")
+    .data(function (d,i) { return d.map(function(a) { return {value: a, row: i}; } ) })
+            .enter().append("svg:rect")
+              .attr("class", "cell")
+              .attr("x", function(d, i) { return x(d.row); })
+              .attr("y", function(d, i) { return y(i); })
+              .attr("width", x(1))
+              .attr("height", y(1))
+              .style("fill", function(d) { return myColor(d.value); })
+              .style("opacity", 0.8)
+              .on("mouseover", mouseover)
+              .on("mousemove", mousemove)
+              .on("mouseleave", mouseleave);
   }
   ngOnInit() {
     this.onLoad();
@@ -192,9 +198,10 @@ export class AppComponent implements OnInit{
           el.position.y = 100 - el.position.y;
         }
       }
+      heatmap[el.position.x][el.position.y] += 1;
+      console.log(heatmap[el.position.x][el.position.y])
       this.graphArray.push(el)
     });
-
     this.conditionalboolProperty = true;
     d3.selectAll("svg > g > g").remove();
     this.drawPlot();
