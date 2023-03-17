@@ -22,7 +22,7 @@ let home_team = ""
 let away_team = ""
 let caller = new ApiCaller();
 
-let heatmap = Array.from(Array(100), () => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]);
+let heatmap = Array.from(Array(50), () => new Array(50).fill(0))
 
 let zoom:any = d3.zoom()
   .on('zoom', handleZoom)
@@ -31,6 +31,10 @@ let zoom:any = d3.zoom()
 
 function handleZoom(e:any) {
   d3.select('svg g').attr('transform', e.transform);
+}
+
+function initializeHeatmap(){
+  heatmap = Array.from(Array(50), () => new Array(50).fill(0))
 }
 
 @Component({
@@ -112,16 +116,16 @@ export class AppComponent implements OnInit{
       .style("stroke", "none")
       .style("opacity", 0.8)
   }
-    var myColor = d3.scaleLinear<string, number>()
-    .domain([1, 4])
-    .range(["grey", "red"])
-    var x = d3.scaleLinear()
+    var myColor = d3.scaleSequential<string, number>()
+    .interpolator(d3.interpolateYlOrRd)
+    .domain([0, 5])
+     var x = d3.scaleLinear()
         .range([0, width])
         .domain([0,heatmap[0].length]);
 
     var y = d3.scaleLinear()
         .range([0, height])
-        .domain([0,heatmap.length]);
+        .domain([0,heatmap[1].length]);
 
 
     var svg = d3.select(".ImgSvg")
@@ -181,13 +185,13 @@ export class AppComponent implements OnInit{
   }
   async onSubmit() {
     this.graphArray = [];
+    initializeHeatmap();
     const apiData : ApiResponse = await caller.callForMatchEvents(this.apiForm.value.match, this.apiForm.value.eventType, this.apiForm.value.player).then(a => a.json());
     match = this.matches.data.filter(a => String(a.match_id) == this.apiForm.value.match)[0];
 
     apiData.data.forEach(el => {    
       if(el.team.name == home_team){
         if (el.position.x > 50){
-          console.log(el.position.x, 100 - el.position.x)
           el.position.x = 100 - el.position.x;
           el.position.y = 100 - el.position.y;
         }
@@ -198,8 +202,7 @@ export class AppComponent implements OnInit{
           el.position.y = 100 - el.position.y;
         }
       }
-      heatmap[el.position.x][el.position.y] += 1;
-      console.log(heatmap[el.position.x][el.position.y])
+      heatmap[Math.floor(el.position.x/2)][Math.floor(el.position.y/2)] += 1;
       this.graphArray.push(el)
     });
     this.conditionalboolProperty = true;
