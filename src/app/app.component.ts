@@ -1,12 +1,29 @@
 
 import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormControl } from '@angular/forms';
-import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, ApiMatch, PlayersResponse, Player } from './interfaces';
-import { ApiCaller } from "./api-caller";
+import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, PlayersResponse, Player } from './Utils/interfaces';
+import { ApiCaller } from "./Utils/api-caller";
+import { GraphPlotter } from "./Utils/graphPlotter";
+import { environment } from "src/environments/environment";
 import * as d3 from "d3";
-//TODO clean players list
-let match: ApiMatch;
+
+export class HeatmapSquare{
+  shots: number;
+  hit: number;
+  miss: number;
+
+  constructor(shots: number, hit: number, miss: number){
+    this.shots = shots;
+    this.hit = hit;
+    this.miss = miss;
+  }
+}
+
+let caller = new ApiCaller();
+let plotter = new GraphPlotter();
+
 let svg: any;
+
 let margin = 50;
 let width = 750 ;
 let height = 458 ;
@@ -20,9 +37,15 @@ let AllPlayers = {
 }
 let home_team = ""
 let away_team = ""
-let caller = new ApiCaller();
+const heatmapSize = 25;
 
-let heatmap = Array.from(Array(50), () => new Array(50).fill(0))
+
+let heatmap = Array.from(Array(heatmapSize), () => {
+  let a = new Array(heatmapSize)
+  for(var i = 0; i < heatmapSize; a[i++] = new HeatmapSquare(0,0,0));
+  return a;
+});
+
 
 let zoom:any = d3.zoom()
   .on('zoom', handleZoom)
@@ -34,7 +57,11 @@ function handleZoom(e:any) {
 }
 
 function initializeHeatmap(){
-  heatmap = Array.from(Array(50), () => new Array(50).fill(0))
+  heatmap = Array.from(Array(heatmapSize), () => {
+    let a = new Array(heatmapSize)
+    for(var i = 0; i < heatmapSize; a[i++] = new HeatmapSquare(0,0,0));
+    return a;
+  });
 }
 
 @Component({
@@ -44,22 +71,28 @@ function initializeHeatmap(){
 })
 export class AppComponent implements OnInit{
   selectSize = 1;
-  title = 'Basquete';
+  title = environment.title;
   eventTypes: EventType[] = [{"code" : "NONE", "name":"Todos"}, {"code" : "A2C, A2E, A3C, A3E", "name":"Arremessos"}];
   matches: ApiMatchesResponse = {"data": []};
   playersData: Player[] = [AllPlayers];
 
-  selectedValue: any;
-  selectedValue2: any;
-  selectedValue3: any;
+  chosenMatch: any;
+  chosenEvent: any;
+  chosenPlayers: any;
+  chosenGraph: any;
 
+  scaleLimit: number = 0;
+  mostShots: number = 0;
+  
   graphArray: ApiEvent[] = [];
-  conditionalboolProperty: boolean = false;
+  handledGraphArray: ApiEvent[] = [];
+  overlap: number[] = [];
 
   apiForm = new FormGroup({
     match: new FormControl(''),
     eventType: new FormControl(''),
-    player: new FormControl('')
+    player: new FormControl(''),
+    visualization: new FormControl('')
   });
 
   private createSvg(): void {
@@ -77,7 +110,7 @@ export class AppComponent implements OnInit{
 
     svg
     .append("image")
-    .attr('xlink:href','https://i.imgur.com/D0smQFm.png')
+    .attr('xlink:href','https://i.imgur.com/yBvF2RJ.png')
     .attr('height', height)
     .attr('width', width)
     .attr('preserveAspectRatio', 'none');
@@ -91,72 +124,29 @@ export class AppComponent implements OnInit{
     .attr("class", "tooltip")
     .style("background-color", "white")
     .style("border", "solid")
-    .style("border-width", "1px")
+    .style("border-width", "0.5px")
     .style("border-radius", "5px")
     .style("padding", "5px");
 
-  // Three function that change the tooltip when user hover / move / leave a cell
-  var mouseover = function(d : any) {
-    tooltip
-      .style("opacity", 1)
-    d3.select(this)
-      .style("stroke", "black")
-      .style("opacity", 1)
+  if(this.chosenGraph == "heatmap")
+  {
+    let result = plotter.heatmap(tooltip, heatmap, width, height, margin);
+    this.scaleLimit = result[0];
+    this.mostShots = result[1];
   }
-  var mousemove = function(this: any, e : any, d:any) {
-    tooltip
-      .html("Quantidade de arremessos: " + d.value)
-      .style("left", (e.clientX + 20) + "px")
-      .style("top", (e.clientY) + "px")
+  else if(this.chosenGraph == "scatter")
+    plotter.scatter(tooltip, this.graphArray, width, height, svg, false);
+  else if(this.chosenGraph == "grouped-scatter")
+    plotter.scatter(tooltip, this.handledGraphArray, width, height, svg, true);
   }
-  var mouseleave = function(d : any) {
-    tooltip
-      .style("opacity", 0)
-    d3.select(this)
-      .style("stroke", "none")
-      .style("opacity", 0.8)
-  }
-    var myColor = d3.scaleSequential<string, number>()
-    .interpolator(d3.interpolateYlOrRd)
-    .domain([0, 5])
-     var x = d3.scaleLinear()
-        .range([0, width])
-        .domain([0,heatmap[0].length]);
 
-    var y = d3.scaleLinear()
-        .range([0, height])
-        .domain([0,heatmap[1].length]);
-
-
-    var svg = d3.select(".ImgSvg")
-        .attr("width", width + margin*2)
-        .attr("height", height + margin*2)
-        .append("g");
-
-    var row = svg.selectAll(".row")
-      .data(heatmap).enter().append("svg:g")
-      .attr("class", "row");
-
-    var col = row.selectAll(".cell")
-    .data(function (d,i) { return d.map(function(a) { return {value: a, row: i}; } ) })
-            .enter().append("svg:rect")
-              .attr("class", "cell")
-              .attr("x", function(d, i) { return x(d.row); })
-              .attr("y", function(d, i) { return y(i); })
-              .attr("width", x(1))
-              .attr("height", y(1))
-              .style("fill", function(d) { return myColor(d.value); })
-              .style("opacity", 0.8)
-              .on("mouseover", mouseover)
-              .on("mousemove", mousemove)
-              .on("mouseleave", mouseleave);
-  }
   ngOnInit() {
     this.onLoad();
   }
+  
   async matchSelected(){
     this.playersData = [AllPlayers];
-    const players : PlayersResponse = await caller.callForPlayersFromMatch(this.selectedValue).then(a => a.json());
+    const players : PlayersResponse = await caller.callForPlayersFromMatch(this.chosenMatch).then(a => a.json());
     let player : Player;
 
     home_team = players.home_team.name;
@@ -174,6 +164,7 @@ export class AppComponent implements OnInit{
    });
    this.selectSize = this.playersData.length/4;
   }
+
   async onLoad(){
     const apiEvents : Array<EventType> = await caller.callForEventTypes().then(a => a.json());
     const apiMatches : ApiMatchesResponse = await caller.callForMatches().then(a => a.json());
@@ -184,11 +175,8 @@ export class AppComponent implements OnInit{
     this.createSvg();
   }
   async onSubmit() {
-    this.graphArray = [];
-    initializeHeatmap();
+    this.ResetData();
     const apiData : ApiResponse = await caller.callForMatchEvents(this.apiForm.value.match, this.apiForm.value.eventType, this.apiForm.value.player).then(a => a.json());
-    match = this.matches.data.filter(a => String(a.match_id) == this.apiForm.value.match)[0];
-
     apiData.data.forEach(el => {    
       if(el.team.name == home_team){
         if (el.position.x > 50){
@@ -202,19 +190,81 @@ export class AppComponent implements OnInit{
           el.position.y = 100 - el.position.y;
         }
       }
-      heatmap[Math.floor(el.position.x/2)][Math.floor(el.position.y/2)] += 1;
+      el.radius = 5;
+      el.cases = 1;
+      this.FillHeatmapData(el);
+      if(["A2C", "A3C", "A2E", "A3E"].includes(el.code) && this.chosenGraph == "grouped-scatter")
+      {
+        this.ScatterOverlapHandler(el);
+      }
       this.graphArray.push(el)
     });
-    this.conditionalboolProperty = true;
     d3.selectAll("svg > g > g").remove();
     this.drawPlot();
   }
+
+  private FillHeatmapData(element : any){
+    let hitCodes = ["A2C", "A3C"];
+    let missCodes = ["A2E", "A3E"];
+    heatmap[Math.floor(element.position.x/(Math.floor(100/heatmapSize)))][heatmapSize - Math.floor(element.position.y/(Math.floor(100/heatmapSize))) - 1].shots += 1;
+    if(hitCodes.includes(element.code))
+      heatmap[Math.floor(element.position.x/(Math.floor(100/heatmapSize)))][heatmapSize -  Math.floor(element.position.y/(Math.floor(100/heatmapSize))) - 1].hit += 1;
+    else if (missCodes.includes(element.code))
+      heatmap[Math.floor(element.position.x/(Math.floor(100/heatmapSize)))][heatmapSize -  Math.floor(element.position.y/(Math.floor(100/heatmapSize))) - 1].miss += 1;
+  }
+
+  private ScatterOverlapHandler(event: ApiEvent) : void{
+    let distance = 0;
+    for(const handledEvent of this.handledGraphArray){
+      if(handledEvent.code == event.code && handledEvent.event_id != event.event_id && !this.overlap.includes(event.event_id))
+      {
+        distance = Math.sqrt((handledEvent.position.x - event.position.x) ** 2 + (handledEvent.position.y - event.position.y) ** 2);
+        if (distance < event.radius + handledEvent.radius) { // Overlap case
+          handledEvent.radius += handledEvent.radius * Math.sqrt(2)/10;
+          handledEvent.cases += 1;
+          this.overlap.push(event.event_id)
+        }
+      }
+    }
+    if(!this.overlap.includes(event.event_id))
+    { 
+      this.handledGraphArray.push(event);
+    } 
+  }
+  private ResetData(): void{
+    this.graphArray = [];
+    this.handledGraphArray = [];
+    this.overlap = [];
+    initializeHeatmap();
+  }
 }
 export class Point{
+  constructor(x: number, y:number){
+    this.x = x;
+    this.y = y;
+  }
+
   public x: number;
   public y: number;
 }
 
+export class OverlapEvent{
+  constructor(match_id: number, code: string, position: Point, radius: number, cases: number){
+    this.match_id = match_id;
+    this.code = code;
+    this.position = position;
+    this.radius = radius;
+    this.cases = cases;
+    this.events = new Array();
+  };
+
+  match_id: number;
+  code: string;
+  position: Point
+  radius: number;
+  cases: number;
+  events: number[];
+}
 
 
 

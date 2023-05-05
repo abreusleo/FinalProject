@@ -1,3 +1,5 @@
+import { environment } from './../../environments/environment';
+
 export class ApiCaller{
   public async callForMatchEvents(match: any, eventType: any, player: any){
     let link = ""
@@ -13,7 +15,7 @@ export class ApiCaller{
     const response = await fetch(link,
     {
       method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
+      headers: {'accept' : 'application/json', 'Authorization': `Bearer ${environment.token}`},
     });
     return response;
   }
@@ -22,7 +24,7 @@ export class ApiCaller{
     const response = await fetch(`https://apibird.tecgraf.puc-rio.br/v1/matches/1?season=2021`,
     {
       method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
+      headers: {'accept' : 'application/json', 'Authorization': `Bearer ${environment.token}`},
     });
     return response;
   }
@@ -31,7 +33,7 @@ export class ApiCaller{
     const response = await fetch(`https://apibird.tecgraf.puc-rio.br/v1/events/types`,
     {
       method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
+      headers: {'accept' : 'application/json', 'Authorization': `Bearer ${environment.token}`},
     });
     return response;
   }
@@ -40,7 +42,7 @@ export class ApiCaller{
     const response = await fetch(`https://apibird.tecgraf.puc-rio.br/v1/matches/1/${match}/players`,
     {
       method: 'GET',
-      headers: {'accept' : 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcGlfdG9rZW46MSIsInNjb3BlcyI6ImNvcmUifQ.6AgyEAU-RQ8NBJwI3rZz9HCRdVTggE9tOCgSSxZlVio'},
+      headers: {'accept' : 'application/json', 'Authorization': `Bearer ${environment.token}`},
     });
     return response;
   }

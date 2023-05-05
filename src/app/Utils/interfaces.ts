@@ -1,3 +1,5 @@
+import { NumberValue } from "d3";
+
 export interface ApiEventTypes{
     data: Array<EventType>;
 }
@@ -57,6 +59,7 @@ export interface ApiMatch{
     date: string
 }
 
+
 export interface ApiEvent{
   league_id: number,
   league_name: string,
@@ -92,5 +95,9 @@ export interface ApiEvent{
   position: {
       x: number,
       y: number
-  }
+  },
+  radius : number,
+  cases : number
 }
+
+
