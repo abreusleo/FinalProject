@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { HeatmapSquare } from "../app.component";
+import { HeatmapSquare } from "../Utils/classes";
 import { ApiEvent } from './interfaces';
 import { environment } from "src/environments/environment";
 const { pathDataToPolys } = require('node_modules/svg-path-to-polygons');
@@ -19,7 +19,8 @@ export class GraphPlotter {
   mostShots : number;
   scaleLimit : number;
 
-  public scatter(tooltip: any, points: any, svg: any, isGrouped: boolean){
+  public scatter(tooltip: any, points: any, isGrouped: boolean){
+    var svg = d3.select(".ImgSvg")
     var mouseover = function(d: any) {
       tooltip.style("opacity", 1)
     }
@@ -170,8 +171,7 @@ export class GraphPlotter {
     }
     return [this.scaleLimit, this.mostShots]
   }
-  private drawPolygons(svg: any, d : string, data: ApiEvent[], tooltip: any){
-    pathData = d;
+  private drawPolygons(svg: any, pathData : string, data: ApiEvent[], tooltip: any){
     let points = pathDataToPolys(pathData)[0];
     var colorScale = d3.scaleSequential<string, number>().interpolator(d3.interpolateRdYlGn).domain([0, this.scaleLimit])    
     var mouseover = function(d : any) {
