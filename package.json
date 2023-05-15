@@ -25,6 +25,7 @@
     "igniteui-angular-core": "^14.2.0",
     "igniteui-angular-maps": "^14.2.0",
     "rxjs": "~7.5.0",
+    "svg-path-to-polygons": "^0.1.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },

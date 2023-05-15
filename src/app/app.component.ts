@@ -25,8 +25,8 @@ let plotter = new GraphPlotter();
 let svg: any;
 
 let margin = 50;
-let width = 750 ;
-let height = 458 ;
+let width = environment.mapWidth;
+let height = environment.mapHeight;
 let AllPlayers = {
   "id": -1,
   "name": "Todos",
@@ -130,14 +130,20 @@ export class AppComponent implements OnInit{
 
   if(this.chosenGraph == "heatmap")
   {
-    let result = plotter.heatmap(tooltip, heatmap, width, height, margin);
+    let result = plotter.heatmap(tooltip, heatmap);
+    this.scaleLimit = result[0];
+    this.mostShots = result[1];
+  }
+  else if(this.chosenGraph == "costumized-heatmap")
+  {
+    let result = plotter.customHeatmap(tooltip, this.graphArray);
     this.scaleLimit = result[0];
     this.mostShots = result[1];
   }
   else if(this.chosenGraph == "scatter")
-    plotter.scatter(tooltip, this.graphArray, width, height, svg, false);
+    plotter.scatter(tooltip, this.graphArray, svg, false);
   else if(this.chosenGraph == "grouped-scatter")
-    plotter.scatter(tooltip, this.handledGraphArray, width, height, svg, true);
+    plotter.scatter(tooltip, this.handledGraphArray, svg, true);
   }
 
   ngOnInit() {
@@ -265,6 +271,3 @@ export class OverlapEvent{
   cases: number;
   events: number[];
 }
-
-
-
