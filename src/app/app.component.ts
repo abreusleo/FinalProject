@@ -1,12 +1,12 @@
 
 import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormControl } from '@angular/forms';
-import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, PlayersResponse, Player } from './Utils/interfaces';
-import { ApiCaller } from "./Utils/api-caller";
+import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, PlayersResponse, Player } from './Services/interfaces';
+import { ApiCaller } from "./Services/api-caller";
 import { environment } from "src/environments/environment";
 import * as d3 from "d3";
 import { MapComponent } from "./map/map.component";
-import { HeatmapSquare } from "./Utils/classes";
+import { HeatmapSquare } from "./Services/classes";
 
 let AllPlayers = {
   "id": -1,

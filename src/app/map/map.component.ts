@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
-import { ApiMatchesResponse, EventType, ApiEvent, Player } from '../Utils/interfaces';
-import { GraphPlotter } from "../Utils/graphPlotter";
+import { ApiEvent } from '../Services/interfaces';
+import { GraphPlotter } from "../Services/graphPlotter";
 import { environment } from "src/environments/environment";
-import { HeatmapSquare } from "../Utils/classes";
+import { HeatmapSquare } from "../Services/classes";
 
 import * as d3 from "d3";
 
@@ -13,7 +12,7 @@ import * as d3 from "d3";
   styleUrls: ['./map.component.css']
 })
 export class MapComponent implements OnInit {
-  chosenGraph: any;
+  chosenGraph: string = "";
   scaleLimit: number = 0;
   mostShots: number = 0;
 
@@ -47,7 +46,6 @@ export class MapComponent implements OnInit {
   }
 
   private createSvg(): void {
-
     let zoom:any = d3.zoom()
     .on('zoom', this.handleZoom)
     .scaleExtent([1, 5])
@@ -67,7 +65,7 @@ export class MapComponent implements OnInit {
 
     this.svg
       .append("image")
-      .attr('xlink:href','https://i.imgur.com/yBvF2RJ.png')
+      .attr('xlink:href','https://i.imgur.com/cTl8Y6e.png')
       .attr('height', this.height)
       .attr('width', this.width)
       .attr('preserveAspectRatio', 'none');
@@ -75,6 +73,7 @@ export class MapComponent implements OnInit {
 
   private drawPlot(): void {
     // create a tooltip
+    console.log(this.chosenGraph)
     var tooltip = d3.select("#scatter")
       .append("div")
       .style("opacity", 0)

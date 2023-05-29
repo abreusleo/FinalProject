@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { HeatmapSquare } from "../Utils/classes";
+import { HeatmapSquare } from "./classes";
 import { ApiEvent } from './interfaces';
 import { environment } from "src/environments/environment";
 const { pathDataToPolys } = require('node_modules/svg-path-to-polygons');
@@ -40,7 +40,8 @@ export class GraphPlotter {
     }
 
     // Add dots
-    const dots = svg.append('g');
+    const dots = svg.append('g')
+    .attr("class", "ImgMap");
     dots.selectAll("dot")
     .data(points)
     .enter()
@@ -48,8 +49,10 @@ export class GraphPlotter {
     .attr("cx", (d: any) => x(d.position.x))
     .attr("cy",  (d: any) => y(d.position.y))
     .attr("r", (d: any) => {
-        if(isGrouped) 
+        if(isGrouped)
+        {
           return d.radius;
+        }
         else
           return 5;
       })
@@ -72,6 +75,16 @@ export class GraphPlotter {
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
+
+    const idks = svg.append("g")
+    idks.selectAll("idk")
+      .data(points)
+      .enter()
+      .append("text")
+      .text((d: any) => x(d.cases))
+      .attr("cx", (d: any) => x(d.position.x))
+      .attr("cy",  (d: any) => y(d.position.y))
+
     return dots;
   }
 
@@ -167,6 +180,7 @@ export class GraphPlotter {
     .append("g");
     this.scaleLimit = 100;
     for(let i = 0; i < heatmapPolygons.length; i++){
+      console.log(i);
       this.drawPolygons(svg, heatmapPolygons[i], data, tooltip)
     }
     return [this.scaleLimit, this.mostShots]

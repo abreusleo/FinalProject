@@ -1,4 +1,4 @@
-import { environment } from './../../environments/environment';
+import { environment } from '../../environments/environment';
 
 export class ApiCaller{
   public async callForMatchEvents(match: any, eventType: any, player: any){
