@@ -96,8 +96,8 @@ export interface ApiEvent{
       x: number,
       y: number
   },
-  radius : number,
-  cases : number
+  cases : number,
+  radius : number
 }
 
 

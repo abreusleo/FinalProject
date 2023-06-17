@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { HeatmapSquare } from "./classes";
 import { ApiEvent } from './interfaces';
 import { environment } from "src/environments/environment";
+import { ChosenGraphService } from "./chosenGraph";
 const { pathDataToPolys } = require('node_modules/svg-path-to-polygons');
 
 let pathData;
@@ -13,20 +14,26 @@ let margin = environment.mapMargin;
 const x = d3.scaleLinear().domain([0, 100]).range([ 0, width ]);
 const y = d3.scaleLinear().domain([0, 100]).range([ height, 0]);
 
+
+
 export class GraphPlotter {
   bestBalance : number;
   worstBalance : number;
   mostShots : number;
   scaleLimit : number;
+  chosenGraphService = new ChosenGraphService();
 
-  public scatter(tooltip: any, points: any, isGrouped: boolean){
+  public scatter(tooltip: any, points: any, isGrouped: boolean, mostShots: number, showEventCases: string){
     var svg = d3.select(".ImgSvg")
+
+    var radiusScale = d3.scaleLinear().range([1, 30]).domain([1, this.mostShots]);
+
     var mouseover = function(d: any) {
       tooltip.style("opacity", 1)
     }
   
     var mousemove = function(this: any, e : any, d:any) {
-      tooltip.html("Cases: " + d.cases + "<br/>Evento: " + d.code)
+      tooltip.html("Cases: " + d.cases + "<br/>Evento: " + d.code  + "<br/>Time: " + d.team.name)
         .style("left", (e.clientX+10) + "px")
         .style("top", (e.clientY-40) + "px");
     }
@@ -51,10 +58,14 @@ export class GraphPlotter {
     .attr("r", (d: any) => {
         if(isGrouped)
         {
+          // if(d.radius * d.cases/mostShots < 6)
+          //   return 6;
+          // else 
+          //   return d.radius * d.cases/mostShots;
           return d.radius;
         }
         else
-          return 5;
+          return 6;
       })
     .style("opacity",.5)
     .style("fill", function(d : any){
@@ -67,23 +78,40 @@ export class GraphPlotter {
       else if(d.code == "ASS"){
         return "#ffff00"
       }
-      else if(d.code == "BOR" || d.code == "BRE" || d.code == "RDE" || d.code == "RED" || d.code == "REO" || d.code == "ERR"){
-        return "#81007f"
+      else if(d.code == "VIA" || d.code == "V24" || d.code == "VSQ" || d.code == "VVC" || d.code == "V5S" || d.code == "V3S" || d.code == "V8S"){
+        if(d.team.name == "Flamengo")
+          return "#3234a8";
+        return "#a83296"
       }
-      return "#ffffff";
+      else if(d.code == "ERR"){
+        if(d.team.name == "Flamengo")
+          return "#3234a8";
+        return "#a83296"
+      }
+      return "#81007f";
     })
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
 
-    const idks = svg.append("g")
-    idks.selectAll("idk")
-      .data(points)
-      .enter()
-      .append("text")
-      .text((d: any) => x(d.cases))
-      .attr("cx", (d: any) => x(d.position.x))
-      .attr("cy",  (d: any) => y(d.position.y))
+    
+    if(isGrouped && showEventCases == 'true')
+      dots.selectAll("dot")
+        .data(points)
+        .enter()
+        .append("text")
+        .text((d: any) => d.cases)
+        .attr("x", (d: any) => {
+          if (d.cases.toString().length > 1)
+            return x(d.position.x) - 3 - (d.cases.toString().length + 1);
+          return x(d.position.x) - 3;
+        })
+        .attr("y",  (d: any) => y(d.position.y) + 3)
+        .style("font-size", "70%")
+        .style("font-weight", "bold")
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave)
 
     return dots;
   }
@@ -113,6 +141,8 @@ export class GraphPlotter {
         .style("opacity", function(d: any) { return opacityScale(d.value.shots); })
     }
 
+    if(this.scaleLimit == 0)
+      this.scaleLimit = 100;
     var colorScale = d3.scaleSequential<string, number>().interpolator(d3.interpolateRdYlGn).domain([0, this.scaleLimit])
 
     var opacityScale = d3.scaleLinear().range([0.6, 1]).domain([0, this.mostShots]);
@@ -135,23 +165,25 @@ export class GraphPlotter {
 
     var col = row.selectAll(".cell")
     .data(function (d : any,i) { return d.map(function(a : any) { return {value: a, row: i}; } ) })
-            .enter()
-              .append("svg:rect")
-              .attr("class", "cell")
-              .attr("x", function(d : any, i) { return x(d.row); })
-              .attr("y", function(d, i: any) { return y(i); })
-              .attr("width", function(d: any) {return x(1);})
-              .attr("height", function(d: any) {return y(1);})
-              .style("fill", function(d : any) { 
-                  if(d.value.shots != 0)
-                  return colorScale(d.value.hit/d.value.shots * 100); 
-                  else
-                    return "#FFFFFF"
-                })
-              .style("opacity",  function(d : any) { return opacityScale(d.value.shots); })
-              .on("mouseover", mouseover)
-              .on("mousemove", mousemove)
-              .on("mouseleave", mouseleave);
+    .enter()
+    .append("svg:rect")
+    .attr("class", "cell")
+    .attr("x", function(d : any, i) { return x(d.row); })
+    .attr("y", function(d, i: any) { return y(i); })
+    .attr("width", function(d: any) {return x(1);})
+    .attr("height", function(d: any) {return y(1);})
+    .style("fill", function(d : any) { 
+        if(d.value.shots != 0)
+        return colorScale(d.value.hit/d.value.shots * 100); 
+        else
+          return "#FFFFFF"
+      })
+    .style("opacity",  function(d : any) { return opacityScale(d.value.shots); })
+    .on("mouseover", mouseover)
+    .on("mousemove", mousemove)
+    .on("mouseleave", mouseleave)
+    
+
     return [this.scaleLimit, this.mostShots];
   }
   private heatmapScale(heatmapData : Array<Array<HeatmapSquare>>){
@@ -170,7 +202,7 @@ export class GraphPlotter {
           this.mostShots = heatmapSquare.shots;
       })
     });
-    this.scaleLimit = Math.max(this.bestBalance, Math.sqrt(this.worstBalance ** 2))
+    this.scaleLimit = this.bestBalance;
   }
 
   public customHeatmap(tooltip: any, data: any){
@@ -243,7 +275,7 @@ export class GraphPlotter {
       .style("opacity", 0.6)
       .on("mouseover", mouseover)
       .on("mousemove", mousemove)
-      .on("mouseleave", mouseleave);;
+      .on("mouseleave", mouseleave);
     
     svg.append("text")
       .text(totalCases)

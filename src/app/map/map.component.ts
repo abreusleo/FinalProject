@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { ApiEvent } from '../Services/interfaces';
 import { GraphPlotter } from "../Services/graphPlotter";
 import { environment } from "src/environments/environment";
 import { HeatmapSquare } from "../Services/classes";
+import { ChosenGraphService } from "../Services/chosenGraph";
 
 import * as d3 from "d3";
 
@@ -12,7 +13,7 @@ import * as d3 from "d3";
   styleUrls: ['./map.component.css']
 })
 export class MapComponent implements OnInit {
-  chosenGraph: string = "";
+  @Input()
   scaleLimit: number = 0;
   mostShots: number = 0;
 
@@ -25,7 +26,10 @@ export class MapComponent implements OnInit {
   handledGraphArray: ApiEvent[] = [];
 
   plotter = new GraphPlotter();
+  chosenGraphService = new ChosenGraphService();
   svg: any;
+
+  showEventCases : string;
 
   constructor() { }
 
@@ -33,12 +37,18 @@ export class MapComponent implements OnInit {
     this.createSvg();
   }
 
-  public RenderGraph(graphArray: Array<ApiEvent>, heatmap: Array<Array<HeatmapSquare>>, handledGraphArray: Array<ApiEvent>, chosenGraph: string){
+  public verificarCondicao(){
+    return this.chosenGraphService.getGraph() == "heatmap";
+  }
+
+  public RenderGraph(graphArray: Array<ApiEvent>, heatmap: Array<Array<HeatmapSquare>>, handledGraphArray: Array<ApiEvent>, chosenGraph: string, mostCases: number, showEventCases: string){
     this.graphArray = graphArray;
     this.heatmap = heatmap;
-    this.chosenGraph = chosenGraph;
     this.handledGraphArray = handledGraphArray;
-    this.drawPlot();
+    this.chosenGraphService.setGraph(chosenGraph);
+    this.mostShots = mostCases;
+    this.showEventCases = showEventCases;
+    return this.drawPlot();
   }
 
   private handleZoom(e:any) {
@@ -71,9 +81,8 @@ export class MapComponent implements OnInit {
       .attr('preserveAspectRatio', 'none');
   }
 
-  private drawPlot(): void {
+  private drawPlot(): number {
     // create a tooltip
-    console.log(this.chosenGraph)
     var tooltip = d3.select("#scatter")
       .append("div")
       .style("opacity", 0)
@@ -84,21 +93,24 @@ export class MapComponent implements OnInit {
       .style("border-radius", "5px")
       .style("padding", "5px");
 
-    if(this.chosenGraph == "heatmap")
+    console.log(this.showEventCases)
+    if(this.chosenGraphService.getGraph() == "heatmap")
     {
       let result = this.plotter.heatmap(tooltip, this.heatmap);
       this.scaleLimit = result[0];
       this.mostShots = result[1];
     }
-    else if(this.chosenGraph == "costumized-heatmap")
+    else if(this.chosenGraphService.getGraph() == "customized-heatmap")
     {
       let result = this.plotter.customHeatmap(tooltip, this.graphArray);
       this.scaleLimit = result[0];
       this.mostShots = result[1];
     }
-    else if(this.chosenGraph == "scatter")
-      this.plotter.scatter(tooltip, this.graphArray, false);
-    else if(this.chosenGraph == "grouped-scatter")
-      this.plotter.scatter(tooltip, this.handledGraphArray, true);
+    else if(this.chosenGraphService.getGraph() == "scatter")
+      this.plotter.scatter(tooltip, this.graphArray, false, this.mostShots, this.showEventCases);
+    else if(this.chosenGraphService.getGraph() == "grouped-scatter")
+      this.plotter.scatter(tooltip, this.handledGraphArray, true, this.mostShots, this.showEventCases);
+    
+    return this.scaleLimit;
   }
 }

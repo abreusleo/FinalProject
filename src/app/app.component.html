@@ -8,7 +8,7 @@
     <div class="form-group">
       <label class="col-md-4 control-label" for="match">Partida</label>
       <div class="col-md-4">
-      <select [(ngModel)]="chosenMatch" formControlName="match" (change)="matchSelected()" class="form-select" aria-label="Default select example" required="">
+      <select [(ngModel)]="chosenMatch" formControlName="match" (change)="matchSelected()" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "5">
           <option *ngFor="let m of matches.data" [value]="m.match_id" id="match">{{m.name}}</option>
       </select>
       </div>
@@ -40,9 +40,20 @@
       <div class="col-md-4">
       <select [(ngModel)]="chosenGraph" formControlName="visualization" class="form-select" aria-label="Default select example" required="">
           <option value="heatmap">Mapa de calor</option>
-          <option value="costumized-heatmap">Mapa de calor com polígonos costumizados</option>
+          <option value="customized-heatmap">Mapa de calor com polígonos customizados</option>
           <option value="scatter">Mapa de circulos</option>
           <option value="grouped-scatter">Mapa de circulos agrupados</option>
+      </select>
+      </div>
+    </div>
+
+    <!-- Select input-->
+    <div class="form-group" *ngIf = "chosenGraph == 'grouped-scatter'">
+      <label class="col-md-4 control-label" for="eventCases">Quantidade de eventos</label>
+      <div class="col-md-4">
+      <select [(ngModel)]="showEventCases" formControlName="eventCases" class="form-select" aria-label="Default select example" required="">
+          <option value="true">Mostrar</option>
+          <option value="false">Não mostrar</option>
       </select>
       </div>
     </div>
@@ -56,3 +67,14 @@
     </div>
   </fieldset>
 </form>
+
+<div style="text-align: left;">
+  <h2 style="color: #3234a8; display: inline; margin-left: 35%;">Flamengo</h2>
+  <h2 style="color: #a83296; display: inline; margin-left: 8%;">Adversários</h2>
+  
+  <div *ngIf = "chosenGraph == 'heatmap' || chosenGraph == 'customized-heatmap';">
+    <p style="text-align: center; margin-left: 21%; margin-top: 10%; position: absolute">{{scaleLimit != 0 ? scaleLimit : 100}}%</p>
+    <img src="https://i.imgur.com/TosCZ1K.png" alt="Scale" style="width: 10px; height: 20%; margin-left: 20%; margin-top: 10%; position: absolute">
+    <p style="margin-top: 20%; margin-left: 21%; position: absolute">0</p>
+  </div>
+</div>
