@@ -41,6 +41,7 @@ export class AppComponent implements OnInit{
   chosenPlayers: string;
   chosenGraph: string;
   showEventCases: string;
+  loading: boolean = false;
 
   heatmapSize: number = 25;
 
@@ -128,6 +129,7 @@ export class AppComponent implements OnInit{
 
   async onSubmit() {
     this.ResetData();
+    this.loading = true;
     let apiData = new Array<ApiEvent>;
     for(let i = 0; i < this.chosenMatch.length; i++){
       let apiResponse : ApiResponse = await this.caller.callForMatchEvents(this.chosenMatch[i], this.apiForm.value.eventType, this.apiForm.value.player).then(a => a.json());

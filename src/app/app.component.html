@@ -1,74 +1,78 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<form [formGroup]="apiForm" (ngSubmit)="onSubmit()" class="form-horizontal">
-  <fieldset>
-    <!-- Form Name -->
-    <h1 class="display-1" style="text-align: center;">Consulta da API</h1>
-    
-    <!-- Select input-->
-    <div class="form-group">
-      <label class="col-md-4 control-label" for="match">Partida</label>
-      <div class="col-md-4">
-      <select [(ngModel)]="chosenMatch" formControlName="match" (change)="matchSelected()" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "5">
-          <option *ngFor="let m of matches.data" [value]="m.match_id" id="match">{{m.name}}</option>
-      </select>
+<div style="display: flex; justify-content: center; align-items: center;">
+  <form [formGroup]="apiForm" (ngSubmit)="onSubmit()" class="form-horizontal">
+    <fieldset>
+      <!-- Form Name -->
+      <h1 class="display-1" style="text-align: center;">Consulta da API</h1>
+      
+      <!-- Select input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="match">Partida</label>
+        <div class="col-md-4">
+        <select [(ngModel)]="chosenMatch" formControlName="match" (change)="matchSelected()" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "5">
+            <option *ngFor="let m of matches.data" [value]="m.match_id" id="match">{{m.name}}</option>
+        </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Select input-->
-    <div class="form-group">
-      <label class="col-md-4 control-label" for="eventType">Tipo de evento</label>
-      <div class="col-md-4">
-      <select [(ngModel)]="chosenEvent" formControlName="eventType" class="form-select" aria-label="Default select example" required="">
-          <option *ngFor="let e of eventTypes" [value]="e.code" id="eventType" >{{e.name}}</option>
-      </select>
+      <!-- Select input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="eventType">Tipo de evento</label>
+        <div class="col-md-4">
+        <select [(ngModel)]="chosenEvent" formControlName="eventType" class="form-select" aria-label="Default select example" required="">
+            <option *ngFor="let e of eventTypes" [value]="e.code" id="eventType" >{{e.name}}</option>
+        </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Select input-->
-    <div class="form-group">
-      <label class="col-md-4 control-label" for="player">Jogadores</label>
-      <div class="col-md-4">
-      <select [(ngModel)]="chosenPlayers" formControlName="player" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "selectSize">
-          <option *ngFor="let p of playersData" [value]="p.id" id="player" >{{p.name}} ({{p.team}})</option>
-      </select>
+      <!-- Select input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="player">Jogadores</label>
+        <div class="col-md-4">
+        <select [(ngModel)]="chosenPlayers" formControlName="player" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "selectSize">
+            <option *ngFor="let p of playersData" [value]="p.id" id="player" >{{p.name}} ({{p.team}})</option>
+        </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Select input-->
-    <div class="form-group">
-      <label class="col-md-4 control-label" for="visualization">Visualização</label>
-      <div class="col-md-4">
-      <select [(ngModel)]="chosenGraph" formControlName="visualization" class="form-select" aria-label="Default select example" required="">
-          <option value="heatmap">Mapa de calor</option>
-          <option value="customized-heatmap">Mapa de calor com polígonos customizados</option>
-          <option value="scatter">Mapa de circulos</option>
-          <option value="grouped-scatter">Mapa de circulos agrupados</option>
-      </select>
+      <!-- Select input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="visualization">Visualização</label>
+        <div class="col-md-4">
+        <select [(ngModel)]="chosenGraph" formControlName="visualization" class="form-select" aria-label="Default select example" required="">
+            <option value="heatmap">Mapa de calor</option>
+            <option value="customized-heatmap">Mapa de calor com polígonos customizados</option>
+            <option value="scatter">Mapa de circulos</option>
+            <option value="grouped-scatter">Mapa de circulos agrupados</option>
+        </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Select input-->
-    <div class="form-group" *ngIf = "chosenGraph == 'grouped-scatter'">
-      <label class="col-md-4 control-label" for="eventCases">Quantidade de eventos</label>
-      <div class="col-md-4">
-      <select [(ngModel)]="showEventCases" formControlName="eventCases" class="form-select" aria-label="Default select example" required="">
-          <option value="true">Mostrar</option>
-          <option value="false">Não mostrar</option>
-      </select>
+      <!-- Select input-->
+      <div class="form-group" *ngIf = "chosenGraph == 'grouped-scatter'">
+        <label class="col-md-4 control-label" for="eventCases">Quantidade de eventos</label>
+        <div class="col-md-4">
+        <select [(ngModel)]="showEventCases" formControlName="eventCases" class="form-select" aria-label="Default select example" required="">
+            <option value="true">Mostrar</option>
+            <option value="false">Não mostrar</option>
+        </select>
+        </div>
       </div>
-    </div>
 
-    <!-- Button -->
-    <div class="form-group">
-      <label class="col-md-4 control-label" for=""></label>
-      <div class="col-md-4">
-        <button id="" name="" class="btn btn-primary" type="submit" [disabled]="!apiForm.valid">Enviar</button>
+      <!-- Button -->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for=""></label>
+        <div class="col-md-4">
+          <button id="" name="" class="btn btn-primary" type="submit" [disabled]="!apiForm.valid">Enviar</button>
+        </div>
       </div>
-    </div>
-  </fieldset>
-</form>
-
-<div style="text-align: left;">
+    </fieldset>
+  </form>
+  <div style="height: 256px; width: 256px;">
+    <img *ngIf = "graphArray.length == 0 && handledGraphArray.length == 0 && loading == true" src="https://i.imgur.com/4yT15sl.gif" style="height: 256px; width: 256px;">
+  </div>
+</div>
+<div>
   <h2 style="color: #3234a8; display: inline; margin-left: 38%;">Flamengo</h2>
   <h2 style="color: #a83296; display: inline; margin-left: 8%;">Adversários</h2>
   

@@ -24,6 +24,7 @@ export class MapComponent implements OnInit {
   heatmap : Array<Array<HeatmapSquare>>;
   graphArray: ApiEvent[] = [];
   handledGraphArray: ApiEvent[] = [];
+  loading: boolean = false;
 
   plotter = new GraphPlotter();
   chosenGraphService = new ChosenGraphService();
