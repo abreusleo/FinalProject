@@ -34,8 +34,8 @@ export class GraphPlotter {
   
     var mousemove = function(this: any, e : any, d:any) {
       tooltip.html("Cases: " + d.cases + "<br/>Evento: " + d.code  + "<br/>Time: " + d.team.name)
-        .style("left", (e.clientX+10) + "px")
-        .style("top", (e.clientY-40) + "px");
+        .style("left", (e.clientX + 10) + "px")
+        .style("top", (e.clientY + 150) + "px");
     }
   
     // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
@@ -75,26 +75,17 @@ export class GraphPlotter {
       else if(d.code == "A2E" || d.code == "A3E" || d.code == "LLE" || d.code == "ENE"){
         return "#ff0000";
       }
-      else if(d.code == "ASS"){
-        return "#ffff00"
-      }
-      else if(d.code == "VIA" || d.code == "V24" || d.code == "VSQ" || d.code == "VVC" || d.code == "V5S" || d.code == "V3S" || d.code == "V8S"){
-        if(d.team.name == "Flamengo")
-          return "#3234a8";
-        return "#a83296"
-      }
-      else if(d.code == "ERR"){
+      else if(d.code == "VIA" || d.code == "V24" || d.code == "VSQ" || d.code == "VVC" || d.code == "V5S" || d.code == "V3S" || d.code == "V8S" || d.code == "ERR" || d.code == "ASS"){
         if(d.team.name == "Flamengo")
           return "#3234a8";
         return "#a83296"
       }
       return "#81007f";
-    })
+    })        
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
-
-    
+   
     if(isGrouped && showEventCases == 'true')
       dots.selectAll("dot")
         .data(points)
@@ -109,9 +100,6 @@ export class GraphPlotter {
         .attr("y",  (d: any) => y(d.position.y) + 3)
         .style("font-size", "70%")
         .style("font-weight", "bold")
-        .on("mouseover", mouseover)
-        .on("mousemove", mousemove)
-        .on("mouseleave", mouseleave)
 
     return dots;
   }
@@ -130,8 +118,8 @@ export class GraphPlotter {
     var mousemove = function(e : any, d : any) {
         tooltip
           .html("Quantidade de arremessos: " + d.value.shots+"</br>Taxa de conversão: " + Number(d.value.hit/d.value.shots * 100).toFixed(2)+"%" + "</br>Saldo: " + (d.value.hit - d.value.miss))
-          .style("left", (e.clientX + 20) + "px")
-          .style("top", (e.clientY) + "px")
+          .style("left", (e.clientX + 10) + "px")
+          .style("top", (e.clientY  + 150) + "px")
     }
     var mouseleave = function(d : any) {
       tooltip
@@ -259,7 +247,7 @@ export class GraphPlotter {
         tooltip
           .html("Quantidade de arremessos: " + totalCases + "</br>Acertos: " + hitCases + "</br>Erros: " + missCases)
           .style("left", (e.clientX + 20) + "px")
-          .style("top", (e.clientY) + "px")
+          .style("top", (e.clientY + 150) + "px")
     }
     let percentage = hitCases/totalCases * 100;
     

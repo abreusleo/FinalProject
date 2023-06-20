@@ -252,17 +252,12 @@ export class AppComponent implements OnInit{
         newEvent.radius = 5 + (newEvent.cases * 0.1)
         newEvent.position.x = this.changeXPosition(max_event, max_event2);
         newEvent.position.y = this.changeYPosition(max_event, max_event2);
-        newEvent.team.name = max_event.team.name;
-
-
-        console.log("ID 1: " + max_event.event_id)
-        console.log("ID 2: " + max_event2.event_id)
+        newEvent.team.name = max_event.team.acronym == "FLA" ? "Flamengo" : "Adversários";
 
         apiEvents.splice(apiEvents.indexOf(max_event), 1);
         apiEvents.splice(apiEvents.indexOf(max_event2), 1);
 
         apiEvents.push(newEvent);
-        console.log("Cases " + newEvent.cases)
       }
     }
     this.graphArray = apiEvents;
