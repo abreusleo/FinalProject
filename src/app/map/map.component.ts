@@ -110,7 +110,7 @@ export class MapComponent implements OnInit {
     else if(this.chosenGraphService.getGraph() == "scatter")
       this.plotter.scatter(tooltip, this.graphArray, false, this.mostShots, this.showEventCases);
     else if(this.chosenGraphService.getGraph() == "grouped-scatter")
-      this.plotter.scatter(tooltip, this.handledGraphArray, true, this.mostShots, this.showEventCases);
+      this.plotter.scatter(tooltip, this.graphArray, true, this.mostShots, this.showEventCases);
     
     return this.scaleLimit;
   }

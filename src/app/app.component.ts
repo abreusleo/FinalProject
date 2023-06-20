@@ -1,12 +1,12 @@
 
 import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormControl } from '@angular/forms';
-import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, PlayersResponse, Player } from './Services/interfaces';
+import { ApiResponse, ApiMatchesResponse, EventType, ApiEvent, PlayersResponse, Player} from './Services/interfaces';
 import { ApiCaller } from "./Services/api-caller";
 import { environment } from "src/environments/environment";
 import * as d3 from "d3";
 import { MapComponent } from "./map/map.component";
-import { HeatmapSquare } from "./Services/classes";
+import { HeatmapSquare, ApiEventClass } from "./Services/classes";
 import { ChosenGraphService } from "./Services/chosenGraph";
 
 let AllPlayers = {
@@ -156,10 +156,11 @@ export class AppComponent implements OnInit{
       el.cases = 1;
       if(this.chosenGraph == "heatmap")
         this.FillHeatmapData(el);
-      if(this.chosenGraph == "grouped-scatter")
-        this.ScatterOverlapHandler(el);
       this.graphArray.push(el)
     });
+    if(this.chosenGraph == "grouped-scatter")
+      this.ScatterOverlapHandler2(apiData);
+    console.log(this.graphArray);
     d3.selectAll("svg > g > g").remove();
     this.callMapComponent();
   }
@@ -207,6 +208,81 @@ export class AppComponent implements OnInit{
       this.handledGraphArray.push(event);
     }
   }
+
+  private ScatterOverlapHandler2(apiEvents: Array<ApiEvent>) : void{
+    let distance = 0;
+
+    let done = false;
+    while(!done){
+      let s_max = -1;
+      let max_event = null;
+      let max_event2 = null;
+      done = true;
+      for(const event of apiEvents){
+        for(const event2 of apiEvents){
+          if(event.code == "ENT")
+            event.code = "A2C";
+          else if(event.code == "ENE")
+            event.code = "A2E";
+          else if(event2.code == "ENT")
+            event2.code = "A2C";
+          else if(event2.code == "ENE")
+            event2.code = "A2E";
+            
+          if(event != event2 && event.code == event2.code)
+          {
+            if((event.team.acronym == "FLA" && event2.team.acronym == "FLA") || (event2.team.acronym != "FLA" && event2.team.acronym != "FLA")){
+              distance = this.distance(event, event2);
+              if (distance < event.radius + event2.radius) { // Overlap case
+                if(distance > s_max){
+                  s_max = distance;
+                  max_event = event;
+                  max_event2 = event2;
+                  done = false;
+                }
+              }
+            }
+          }
+        }
+      }
+      if(!done && max_event != null && max_event2 != null){
+        let newEvent = new ApiEventClass();
+        newEvent.cases = max_event.cases + max_event2.cases
+        newEvent.code = max_event.code;
+        newEvent.radius = 5 + (newEvent.cases * 0.1)
+        newEvent.position.x = this.changeXPosition(max_event, max_event2);
+        newEvent.position.y = this.changeYPosition(max_event, max_event2);
+        newEvent.team.name = max_event.team.name;
+
+
+        console.log("ID 1: " + max_event.event_id)
+        console.log("ID 2: " + max_event2.event_id)
+
+        apiEvents.splice(apiEvents.indexOf(max_event), 1);
+        apiEvents.splice(apiEvents.indexOf(max_event2), 1);
+
+        apiEvents.push(newEvent);
+        console.log("Cases " + newEvent.cases)
+      }
+    }
+    this.graphArray = apiEvents;
+  }
+
+  private distance(event1: ApiEvent, event2: ApiEvent ) : number{
+    return Math.sqrt((event1.position.x - event2.position.x) ** 2 + (event1.position.y - event2.position.y) ** 2);
+  }
+
+  private changeXPosition(event1: ApiEvent, event2: ApiEvent ){
+    let peso1 = event1.radius;
+    let peso2 = event2.radius;
+
+    return (event1.position.x * peso1 + event2.position.x * peso2) / (peso1 + peso2);
+  }
+  private changeYPosition(event1: ApiEvent, event2: ApiEvent ){
+    let peso1 = event1.radius;
+    let peso2 = event2.radius;
+    return (event1.position.y * peso1 + event2.position.y * peso2) / (peso1 + peso2);
+}
 
   private initializeHeatmap(){
     this.heatmap = Array.from(Array(this.heatmapSize), () => {

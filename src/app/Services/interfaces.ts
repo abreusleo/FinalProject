@@ -99,5 +99,3 @@ export interface ApiEvent{
   cases : number,
   radius : number
 }
-
-
