@@ -35,7 +35,7 @@ export class GraphPlotter {
     var mousemove = function(this: any, e : any, d:any) {
       tooltip.html("Cases: " + d.cases + "<br/>Evento: " + d.code  + "<br/>Time: " + d.team.name)
         .style("left", (e.clientX + 10) + "px")
-        .style("top", (e.clientY + 150) + "px");
+        .style("top", (e.clientY + 300) + "px");
     }
   
     // A function that change this tooltip when the leaves a point: just need to set opacity to 0 again
@@ -58,10 +58,6 @@ export class GraphPlotter {
     .attr("r", (d: any) => {
         if(isGrouped)
         {
-          // if(d.radius * d.cases/mostShots < 6)
-          //   return 6;
-          // else 
-          //   return d.radius * d.cases/mostShots;
           return d.radius;
         }
         else
