@@ -94,7 +94,6 @@ export class MapComponent implements OnInit {
       .style("border-radius", "5px")
       .style("padding", "5px");
 
-    console.log(this.showEventCases)
     if(this.chosenGraphService.getGraph() == "heatmap")
     {
       let result = this.plotter.heatmap(tooltip, this.heatmap);

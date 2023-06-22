@@ -30,7 +30,7 @@
         <label class="col-md-4 control-label" for="player">Jogadores</label>
         <div class="col-md-4">
         <select [(ngModel)]="chosenPlayers" formControlName="player" class="form-select" aria-label="Default select example" required="" multiple [attr.size] = "selectSize">
-            <option *ngFor="let p of playersData" [value]="p.id" id="player" >{{p.name}} ({{p.team}})</option>
+            <option *ngFor="let p of playersData" [value]="p.id" id="player" >{{p.name}}({{p.team}})</option>
         </select>
         </div>
       </div>
@@ -73,9 +73,10 @@
   </div>
 </div>
 <div>
-  <h2 style="color: #3234a8; display: inline; margin-left: 38%;">Flamengo</h2>
-  <h2 style="color: #a83296; display: inline; margin-left: 8%;">Adversários</h2>
-  
+  <div style="display: flex;">
+    <h2 style="color: #3234a8; display: inline; padding-right: 15%; margin-left: 30%;">Eventos do Flamengo</h2>
+    <h2 style="color: #a83296; display: inline; margin-right: 30%;">Eventos dos Adversários</h2>
+  </div>
   <div *ngIf = "chosenGraph == 'heatmap' || chosenGraph == 'customized-heatmap';">
     <p style="text-align: center; margin-left: 21%; margin-top: 10%; position: absolute">{{scaleLimit != 0 ? scaleLimit : 100}}%</p>
     <img src="https://i.imgur.com/TosCZ1K.png" alt="Scale" style="width: 10px; height: 20%; margin-left: 20%; margin-top: 10%; position: absolute">

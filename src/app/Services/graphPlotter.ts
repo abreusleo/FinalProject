@@ -71,7 +71,7 @@ export class GraphPlotter {
       else if(d.code == "A2E" || d.code == "A3E" || d.code == "LLE" || d.code == "ENE"){
         return "#ff0000";
       }
-      else if(d.code == "VIA" || d.code == "V24" || d.code == "VSQ" || d.code == "VVC" || d.code == "V5S" || d.code == "V3S" || d.code == "V8S" || d.code == "ERR" || d.code == "ASS"){
+      else if(d.code == "VIA" || d.code == "V24" || d.code == "VSQ" || d.code == "VVC" || d.code == "V5S" || d.code == "V3S" || d.code == "V8S" || d.code == "ERR" || d.code == "ASS" || d.code == "FAC"){
         if(d.team.name == "Flamengo")
           return "#3234a8";
         return "#a83296"
@@ -196,7 +196,6 @@ export class GraphPlotter {
     .append("g");
     this.scaleLimit = 100;
     for(let i = 0; i < heatmapPolygons.length; i++){
-      console.log(i);
       this.drawPolygons(svg, heatmapPolygons[i], data, tooltip)
     }
     return [this.scaleLimit, this.mostShots]

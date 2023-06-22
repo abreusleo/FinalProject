@@ -119,9 +119,11 @@ export class AppComponent implements OnInit{
   }
 
   async onLoad(){
+    const noPositionEvents: Array<String> = ["BOR", "BRE", "FIM", "FIQ", "IQU", "LLC", "LLE", "RDE", "RED", "REO", "ROE", "SBE", "SBS", "TET"]
     const apiEvents : Array<EventType> = await this.caller.callForEventTypes().then(a => a.json());
     const apiMatches : ApiMatchesResponse = await this.caller.callForMatches().then(a => a.json());
     apiEvents.forEach(element => {
+      if(!noPositionEvents.includes(element.code))
       this.eventTypes.push(element);
     });
     apiMatches.data.forEach(element => {
@@ -140,7 +142,6 @@ export class AppComponent implements OnInit{
         apiData.push(element);
       });
     }
-    console.log(apiData)
 
     apiData.forEach(el => {    
       if(el.team.name == "Flamengo"){
@@ -234,8 +235,6 @@ export class AppComponent implements OnInit{
               distance = this.distance(event, event2);
               if (distance < event.radius + event2.radius) { // Overlap case
                 if (event.radius < r_min || event2.radius < r_min){
-                  // if(distance > s_max){
-                    // s_max = distance;
                     max_event = event;
                     max_event2 = event2;
                     done = false;
