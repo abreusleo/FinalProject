@@ -87,27 +87,31 @@ export class AppComponent implements OnInit{
     this.playersData = [AllPlayers];
     let playersFromMatch : Array<string> = new Array<string>();
     this.chosenMatch.forEach(async element => {
-      const players : PlayersResponse = await this.caller.callForPlayersFromMatch(element).then(a => a.json());
+      const players : any = await this.caller.callForPlayersFromMatch(element).then(a => a.json());
       let player : Player;
+      let teams : string[] = Object.keys(players);
   
-      this.home_team = players.home_team.name;
-      this.away_team = players.away_team.name;
+      this.home_team = teams[0];
+      this.away_team = teams[1];
   
       this.chosenGraphService.setHomeTeam(this.home_team);
       this.chosenGraphService.setAwayTeam(this.away_team);
-  
-      players.home_players.forEach(element => {
+      
+      let home_players : Player[] = players[this.home_team]
+      let away_players : Player[] = players[this.away_team]
+
+      home_players.forEach(element => {
         player = element;
-        player.team = players.home_team.name
+        player.team = this.home_team
         if(!playersFromMatch.includes(element.name))
         {
           this.playersData.push(player);
           playersFromMatch.push(element.name);
         }
       });
-      players.away_players.forEach(element => {
+      away_players.forEach(element => {
         player = element;
-        player.team = players.away_team.name
+        player.team = this.away_team
         if(!playersFromMatch.includes(element.name))
         {
           this.playersData.push(player);
